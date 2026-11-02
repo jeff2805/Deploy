@@ -1,0 +1,215 @@
+/* ==========================================================================
+   Settings area of the Municipal Tourism Office dashboard.
+
+   Its own file, loaded only on the settings pages, for the same reason
+   the messaging module has one: visitdasol.css is 137 KB that every page
+   on the site depends on, and a module does not need to be edited into
+   the middle of it.
+
+   Every colour here is an existing VisitDasol token. Nothing new is
+   invented, so the settings screens cannot drift away from the rest of
+   the dashboard when the palette changes.
+   ========================================================================== */
+
+/* The cards on the hub ----------------------------------------------------- */
+
+.vd-settings__card {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  height: 100%;
+  padding: var(--vd-space-sm, 1rem);
+  border: 1px solid var(--vd-brine);
+  border-radius: var(--vd-radius-lg, .75rem);
+  background: #FFFFFF;
+  box-shadow: var(--vd-shadow);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.vd-settings__card:hover,
+.vd-settings__card:focus-visible {
+  border-color: var(--vd-lagoon);
+  box-shadow: 0 4px 14px rgba(13, 59, 71, .14);
+  transform: translateY(-1px);
+  color: inherit;
+}
+
+.vd-settings__card:focus-visible {
+  outline: 2px solid var(--vd-lagoon);
+  outline-offset: 2px;
+}
+
+/* The already-built screens, linked rather than rebuilt. Quieter, so the
+   eye lands on the settings this page actually owns. */
+.vd-settings__card--quiet {
+  background: var(--vd-salt, #F7F9FA);
+  box-shadow: none;
+}
+
+.vd-settings__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--vd-radius-sm, .4rem);
+  background: var(--vd-lagoon-tint);
+  color: var(--vd-lagoon-dark);
+  font-size: 1.15rem;
+}
+
+.vd-settings__icon--quiet {
+  background: #FFFFFF;
+  border: 1px solid var(--vd-brine);
+  color: var(--vd-muted);
+}
+
+.vd-settings__body {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  min-width: 0;
+}
+
+.vd-settings__title {
+  font-weight: 650;
+  color: var(--vd-bay);
+}
+
+.vd-settings__blurb {
+  font-size: .8125rem;
+  line-height: 1.45;
+  color: var(--vd-muted);
+}
+
+/* Pushed to the right edge and vertically centred on the icon. */
+.vd-settings__chev {
+  margin-left: auto;
+  align-self: center;
+  color: var(--vd-muted);
+  font-size: .9rem;
+}
+
+/* Section headings between card grids -------------------------------------- */
+
+.vd-settings__heading {
+  margin: var(--vd-space-xl, 2rem) 0 .35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--vd-bay);
+}
+
+.vd-settings__note {
+  max-width: 62ch;
+  margin-bottom: var(--vd-space-sm, 1rem);
+  font-size: .8125rem;
+  line-height: 1.55;
+  color: var(--vd-muted);
+}
+
+.vd-settings__back {
+  margin-bottom: var(--vd-space-sm, 1rem);
+  font-size: .8125rem;
+}
+
+.vd-settings__back a {
+  color: var(--vd-muted);
+  text-decoration: none;
+}
+
+.vd-settings__back a:hover { color: var(--vd-lagoon-dark); }
+
+/* The group form ----------------------------------------------------------- */
+
+.vd-settings__form {
+  padding: var(--vd-space-md, 1.25rem);
+}
+
+/* One field per row with a rule between, so a long form reads as a list
+   of decisions rather than a wall of boxes. */
+.vd-settings__field + .vd-settings__field {
+  margin-top: var(--vd-space-sm, 1rem);
+  padding-top: var(--vd-space-sm, 1rem);
+  border-top: 1px solid var(--vd-brine);
+}
+
+.vd-settings__field.is-invalid {
+  margin-inline: calc(var(--vd-space-sm, 1rem) * -1);
+  padding-inline: var(--vd-space-sm, 1rem);
+  border-left: 3px solid #8C2521;
+  background: rgba(140, 37, 33, .04);
+}
+
+/* Inputs do not need the full width of a desktop panel to be usable, and a
+   120-character text box invites a 120-character answer. */
+.vd-settings__form .form-control,
+.vd-settings__form .form-select {
+  max-width: 32rem;
+}
+
+.vd-settings__form .form-control-color {
+  max-width: 4rem;
+  padding: .2rem;
+}
+
+.vd-settings__colour {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.vd-settings__colour code {
+  font-size: .8125rem;
+  color: var(--vd-muted);
+}
+
+.vd-settings__help {
+  max-width: 58ch;
+  margin: .35rem 0 0;
+  font-size: .8125rem;
+  line-height: 1.5;
+  color: var(--vd-muted);
+}
+
+.vd-settings__error {
+  margin: .35rem 0 0;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: #8C2521;
+}
+
+.vd-settings__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: var(--vd-space-md, 1.25rem);
+  padding-top: var(--vd-space-sm, 1rem);
+  border-top: 1px solid var(--vd-brine);
+}
+
+/* A housekeeping row: an explanation on the left, one button on the right. */
+.vd-settings__ops {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vd-space-sm, 1rem);
+  padding: var(--vd-space-md, 1.25rem);
+  margin-top: var(--vd-space-sm, 1rem);
+}
+
+.vd-settings__ops > div { max-width: 52ch; }
+
+@media (max-width: 575.98px) {
+  .vd-settings__form .form-control,
+  .vd-settings__form .form-select { max-width: 100%; }
+
+  .vd-settings__ops { flex-direction: column; align-items: stretch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vd-settings__card { transition: none; }
+  .vd-settings__card:hover { transform: none; }
+}

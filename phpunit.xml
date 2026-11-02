@@ -23,9 +23,27 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
+        <!--
+            The test database is pinned in full, not just by name.
+
+            DB_CONNECTION and DB_DATABASE used to be the only overrides,
+            and the host, port and credentials fell through to .env. That
+            was harmless while .env also pointed at local MariaDB. The
+            moment .env was switched to Supabase, the suite began asking
+            the MySQL driver to reach a PostgreSQL pooler on port 5432 —
+            and because that combination does not fail fast, the whole
+            run hung with no output rather than reporting an error.
+
+            Tests belong on the local database whatever .env is doing.
+        -->
         <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="3306"/>
         <env name="DB_DATABASE" value="visitdasol_test"/>
+        <env name="DB_USERNAME" value="root"/>
+        <env name="DB_PASSWORD" value=""/>
         <env name="DB_URL" value=""/>
+        <env name="DB_SSLMODE" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

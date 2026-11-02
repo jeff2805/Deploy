@@ -62,7 +62,25 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+    
         ],
+        
+        'mysql_source' => [
+            'driver' => 'mysql',
+            'host' => env('SOURCE_DB_HOST', '127.0.0.1'),
+            'port' => env('SOURCE_DB_PORT', '3306'),
+            'database' => env('SOURCE_DB_DATABASE', 'visitdasol'),
+            'username' => env('SOURCE_DB_USERNAME', 'root'),
+            'password' => env('SOURCE_DB_PASSWORD', ''),
+            'unix_socket' => '',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
 
         'mariadb' => [
             'driver' => 'mariadb',

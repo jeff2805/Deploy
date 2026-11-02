@@ -34,6 +34,7 @@
 <p class="vd-sidebar__group">Account</p>
 <ul class="vd-sidebar__list">
     <x-sidebar-link route="profile.edit" icon="person-circle">Profile</x-sidebar-link>
+    <x-sidebar-link route="admin.settings.index" match="admin.settings.*" icon="gear">Settings</x-sidebar-link>
     @if (Route::has('logout'))
         <li>
             <form method="POST" action="{{ route('logout') }}">

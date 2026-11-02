@@ -26,7 +26,9 @@ use App\Http\Controllers\Tourist\ReviewController as TouristReviewController;
 use App\Http\Controllers\Owner\ReviewController as OwnerReviewController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\OwnerController as AdminOwnerController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Settings\SettingsRegistry;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SocialLoginController;
@@ -589,6 +591,34 @@ Route::prefix('admin')
         Route::patch('/resorts/{resort}/activate', [AdminResortController::class, 'activate'])->name('resorts.activate');
         Route::patch('/resorts/{resort}/deactivate', [AdminResortController::class, 'deactivate'])->name('resorts.deactivate');
         Route::patch('/resorts/{resort}/feature', [AdminResortController::class, 'feature'])->name('resorts.feature');
+
+        /*
+        | Settings.
+        |
+        | One route per verb and a {group} segment, because the groups
+        | are declared in App\Settings\SettingsRegistry rather than
+        | here: adding a group must not mean adding a route. The
+        | segment is constrained to the groups that actually exist, so
+        | an unknown one is a 404 from the router rather than a
+        | half-rendered page.
+        |
+        | Authorisation is SettingPolicy, checked per group inside the
+        | controller. The role:super_admin middleware on this whole
+        | group is the outer door; the policy is the one that knows
+        | which rooms are open to whom.
+        */
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+
+        Route::get('/settings/{group}', [SettingsController::class, 'edit'])
+            ->whereIn('group', array_keys(SettingsRegistry::groups()))
+            ->name('settings.edit');
+
+        Route::put('/settings/{group}', [SettingsController::class, 'update'])
+            ->whereIn('group', array_keys(SettingsRegistry::groups()))
+            ->name('settings.update');
+
+        Route::post('/settings-cache-clear', [SettingsController::class, 'clearCache'])->name('settings.cache-clear');
+        Route::post('/settings-mail-test', [SettingsController::class, 'testMail'])->name('settings.mail-test');
     });
 
 /*

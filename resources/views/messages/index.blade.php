@@ -9,7 +9,7 @@
 @section('content')
     <div class="container py-5">
         <x-page-header title="Messages"
-                       subtitle="Your conversations with resorts on Dasol Bay.">
+                       subtitle="Your conversations with resorts on Dasol.">
             @if ($unread > 0)
                 <span class="vd-badge vd-badge--danger">{{ $unread }} unread</span>
             @endif

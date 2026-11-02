@@ -23,8 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Content Security Policy and other security headers on every page.
+        // MaintenanceGate closes the public site when the office turns
+        // maintenance on in Settings. It exempts the office itself and
+        // the sign-in routes, so it cannot lock anybody out.
         $middleware->web(append: [
             \App\Http\Middleware\SecurityHeaders::class,
+            \App\Http\Middleware\MaintenanceGate::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {
