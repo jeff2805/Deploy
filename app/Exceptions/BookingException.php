@@ -116,4 +116,21 @@ class BookingException extends RuntimeException
             'That date is too far ahead to book online.'
         );
     }
+
+    /**
+     * A way of paying this resort does not accept for this stay.
+     *
+     * The form only offers the methods the resort's terms allow, so a
+     * guest reaching this has sent something the page did not show
+     * them: a form left open while the owner changed their policy, or
+     * a request made by hand. Either way the answer is the same, and
+     * the deposit stands.
+     */
+    public static function paymentMethodNotAllowed(string $method): self
+    {
+        return new self(
+            "This resort does not accept {$method} for this booking. "
+            .'Please reload the page and choose from the options shown.'
+        );
+    }
 }

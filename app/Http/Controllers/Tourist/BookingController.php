@@ -143,8 +143,28 @@ class BookingController extends Controller
             ->where('active', true)
             ->first();
 
+        /*
+         * What this resort asks for up front, on this stay, if the
+         * guest sends the request now. Recalculated on the server when
+         * they actually do, so a page left open while the owner changed
+         * their terms cannot lock in a stale quote.
+         *
+         * WORKED OUT BEFORE THE PAYMENT METHODS, because it decides
+         * them: a resort that takes no cash on arrival must not be
+         * offered "Pay at the resort", and one that asks for nothing in
+         * advance must not be offered a way to pay in advance.
+         */
+        $terms = $this->policies->terms(
+            $room->resort->paymentTerms(),
+            $nights > 0
+                ? $this->bookings->total($room->price_per_night, $nights, $roomsBooked)
+                : '0.00',
+            $checkIn ?? CarbonImmutable::today()
+        );
+
         $preferences = PaymentPreference::available(
-            $manualGcashAccount
+            $manualGcashAccount,
+            $terms
         );
 
         return view('tourist.bookings.create', [
@@ -210,19 +230,8 @@ class BookingController extends Controller
             'manualGcashAccount' => $manualGcashAccount,
             'preferences' => $preferences,
 
-            /*
-             * What this resort asks for up front, on this stay, if the
-             * guest sends the request now. Recalculated on the server
-             * when they actually do, so a page left open while the owner
-             * changed their terms cannot lock in a stale quote.
-             */
-            'terms' => $this->policies->terms(
-                $room->resort->paymentTerms(),
-                $nights > 0
-                    ? $this->bookings->total($room->price_per_night, $nights, $roomsBooked)
-                    : '0.00',
-                $checkIn ?? CarbonImmutable::today()
-            ),
+            // Worked out above, where the payment methods are chosen from it.
+            'terms' => $terms,
         ]);
     }
 

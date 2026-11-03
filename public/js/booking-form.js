@@ -145,6 +145,44 @@
     return Math.round((end - start) / 86400000);
   }
 
+  /**
+   * The day after an ISO date, as an ISO date.
+   *
+   * BUILT FROM LOCAL PARTS, NOT toISOString(). The obvious version of
+   * this — new Date(iso + 'T00:00:00'), add a day, toISOString().slice()
+   * — parses as local midnight and then prints in UTC. Eight hours west
+   * of here that is still the previous evening, so in Manila the
+   * "day after" would come back as the same day, and the minimum would
+   * let a guest check out on the morning they arrived.
+   */
+  function dayAfter(iso) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) {
+      return '';
+    }
+
+    var parts = iso.split('-');
+
+    var date = new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2])
+    );
+
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
+    date.setDate(date.getDate() + 1);
+
+    return date.getFullYear() + '-' +
+      pad(date.getMonth() + 1) + '-' +
+      pad(date.getDate());
+  }
+
+  function pad(number) {
+    return (number < 10 ? '0' : '') + number;
+  }
+
   function readableTime(value) {
     if (!/^\d{2}:\d{2}$/.test(value || '')) {
       return '';
@@ -330,6 +368,70 @@
       show(out.lastMinute, due && Boolean(terms.last_minute));
       show(out.onSite, !due && Boolean(terms.on_site_allowed));
       show(out.error, false);
+
+      applyPaymentMethods(due, Boolean(terms.on_site_allowed));
+    }
+
+    /*
+     * THE WAYS OF PAYING, KEPT IN STEP WITH THE TERMS.
+     *
+     * The server already decides this twice — the form is rendered with
+     * only the allowed methods, and BookingService refuses a method the
+     * terms do not permit. This is the third place, and the only one
+     * that can react while the guest is still filling the form in:
+     * moving the dates into the resort's last-minute window turns "no
+     * deposit" into "pay in full", and a prepaid option that was
+     * rightly absent a moment ago now belongs on screen.
+     *
+     * HIDING IS NOT ENFORCEMENT, and nothing here pretends otherwise.
+     * It keeps the choices honest while they are being made; the server
+     * is what makes them stick.
+     */
+    function applyPaymentMethods(due, onSiteAllowed) {
+      var radios = form.querySelectorAll('[data-payment-preference]');
+
+      if (!radios.length) {
+        return;
+      }
+
+      var chosenWasHidden = false;
+
+      radios.forEach(function (radio) {
+        // Prepaid methods need something to collect; paying on arrival
+        // needs the resort to accept cash on arrival.
+        var allowed = radio.value === 'on_arrival'
+          ? onSiteAllowed
+          : due;
+
+        // The whole option, label and all, so the text goes with the
+        // button rather than leaving a stranded sentence behind.
+        var option = radio.closest('label') || radio;
+
+        option.hidden = !allowed;
+        radio.disabled = !allowed;
+
+        if (!allowed && radio.checked) {
+          radio.checked = false;
+          chosenWasHidden = true;
+        }
+      });
+
+      /*
+       * A guest whose choice just disappeared is left with none rather
+       * than quietly moved to a method they did not pick — except that
+       * leaving nothing selected would send an empty preference, so the
+       * first option still standing is taken.
+       */
+      if (chosenWasHidden) {
+        for (var i = 0; i < radios.length; i++) {
+          if (!radios[i].disabled) {
+            radios[i].checked = true;
+            break;
+          }
+        }
+
+        radios[0].dispatchEvent(new Event('change', { bubbles: true }));
+      }
     }
 
     /*
@@ -892,6 +994,50 @@
         1,
         getNumber(roomsField, 1)
       );
+
+      /*
+       * THE EARLIEST CHECK-OUT THE PICKER WILL OFFER.
+       *
+       * The server has always refused a check-out on or before the
+       * check-in ("after:check_in_date" in StoreBookingRequest), but
+       * the date box did not: its minimum was written once, when the
+       * page was built, as tomorrow. A guest arriving in March could
+       * pick a check-out in January, fill in the rest of the form,
+       * send it, and only then be told. Moving the floor with the
+       * arrival date makes the picker agree with the rule.
+       *
+       * THIS RUNS BEFORE THE NIGHTS ARE COUNTED, deliberately. When a
+       * date is corrected below, the count and every peso that
+       * follows from it have to be worked out from the corrected
+       * date — doing this afterwards would leave the price one
+       * refresh behind the dates on screen.
+       *
+       * ONLY FOR OVERNIGHT STAYS. A tour has one date; its check-out
+       * box is folded away and the server derives the day after
+       * itself, so a minimum here would constrain a field the guest
+       * cannot see.
+       */
+      if (overnight) {
+        var floor = dayAfter(checkIn.value);
+
+        if (floor) {
+          checkOut.min = floor;
+
+          // A date already below the new floor is corrected rather
+          // than left for the browser to reject on submit.
+          if (!checkOut.value || checkOut.value < floor) {
+            checkOut.value = floor;
+          }
+        }
+      } else {
+        /*
+         * Cleared, not left behind. A stale minimum on a hidden,
+         * no-longer-required box is exactly the kind of thing that
+         * makes a form refuse to submit with nothing on screen to
+         * explain why.
+         */
+        checkOut.removeAttribute('min');
+      }
 
       /*
        * A tour has none, whatever is sitting in the folded-away

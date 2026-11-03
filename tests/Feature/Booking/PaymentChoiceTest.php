@@ -76,13 +76,19 @@ class PaymentChoiceTest extends TestCase
 
     /* What the form offers ------------------------------------------------ */
 
-    public function test_the_booking_form_offers_qrph_or_paying_at_the_resort(): void
+    /**
+     * "Pay at the resort" is no longer offered.
+     *
+     * IT USED TO BE, and this test used to require it. The option was
+     * withdrawn for new bookings; the enum case remains only so that
+     * reservations made while it existed can still be read.
+     */
+    public function test_the_booking_form_no_longer_offers_paying_at_the_resort(): void
     {
         $this->actingAs($this->tourist)->get($this->formUrl())
             ->assertOk()
-            ->assertSee('How would you like to pay?')
-            ->assertSee('QRPh')
-            ->assertSee('Pay at the resort')
+            ->assertDontSee('Pay at the resort')
+            ->assertDontSee('value="on_arrival"', false)
             // The summary still looks like a bill, so this has to stay said.
             ->assertSee('Nothing is charged now.');
     }
@@ -110,11 +116,17 @@ class PaymentChoiceTest extends TestCase
         $this->assertSame(PaymentPreference::Online, Booking::latest('id')->sole()->payment_preference);
     }
 
-    public function test_choosing_to_pay_at_the_resort_is_kept_too(): void
+    /**
+     * Sending the withdrawn choice by hand does not book.
+     *
+     * This is the server half of the removal: taking the radio off the
+     * page stops nobody who can type a form field.
+     */
+    public function test_choosing_to_pay_at_the_resort_is_refused(): void
     {
-        $this->request(['payment_preference' => 'on_arrival'])->assertSessionHasNoErrors();
+        $this->request(['payment_preference' => 'on_arrival']);
 
-        $this->assertSame(PaymentPreference::OnArrival, Booking::latest('id')->sole()->payment_preference);
+        $this->assertSame(0, Booking::query()->count());
     }
 
     /** Requests made before this field existed, and anyone posting without it. */
@@ -187,10 +199,22 @@ class PaymentChoiceTest extends TestCase
             ->assertSee('intends to pay by QRPh once you confirm');
     }
 
+    /**
+     * A reservation made while "Pay at the resort" was still offered.
+     *
+     * MADE DIRECTLY, not through the form, because the form will not
+     * accept that choice any more. The point of the test is unchanged
+     * and is now more important than it was: the owner's screen has to
+     * go on reading bookings taken under the old option.
+     */
     public function test_a_resort_expecting_cash_is_told_to_collect_as_usual(): void
     {
-        $this->request(['payment_preference' => 'on_arrival']);
+        $this->request();
         $arrival = Booking::latest('id')->sole();
+
+        $arrival->forceFill([
+            'payment_preference' => PaymentPreference::OnArrival,
+        ])->save();
 
         $this->actingAs($this->room->resort->owner)->get(route('owner.bookings.show', $arrival))
             ->assertOk()
@@ -214,10 +238,15 @@ class PaymentChoiceTest extends TestCase
         $this->assertStringContainsString('You chose to pay by QRPh', $mail);
     }
 
+    /** Again on an older booking, for the reason given above. */
     public function test_that_line_is_left_out_when_the_guest_is_paying_at_the_resort(): void
     {
-        $this->request(['payment_preference' => 'on_arrival']);
+        $this->request();
         $booking = Booking::latest('id')->sole();
+
+        $booking->forceFill([
+            'payment_preference' => PaymentPreference::OnArrival,
+        ])->save();
 
         $mail = (new \App\Notifications\BookingDecided($booking->fresh(), BookingStatus::Confirmed))
             ->toMail($this->tourist)

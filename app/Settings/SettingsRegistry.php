@@ -82,12 +82,21 @@ class SettingsRegistry
                 'blurb' => 'How far ahead, how long, and when a stay may be cancelled.',
                 'roles' => ['super_admin'],
             ],
-            'payments' => [
-                'label' => 'Payments',
-                'icon' => 'cash-coin',
-                'blurb' => 'Deposits and deadlines, for resorts that set no policy of their own.',
-                'roles' => ['super_admin'],
-            ],
+            /*
+            | THE PAYMENTS GROUP WAS HERE and was removed on request.
+            |
+            | Nothing about how VisitDasol takes money changed with it.
+            | The deposit percentage, the payment deadline and the
+            | on-site option are still read from config/visitdasol.php
+            | by Booking, ResortPaymentPolicy and BookingService exactly
+            | as they were before this settings module existed — what
+            | is gone is only the screen that let the office edit the
+            | municipal fallback.
+            |
+            | A resort's own payment policy was always the one that
+            | decided, and a booking has always kept the terms it was
+            | made under. Neither depended on this group.
+            */
             'map' => [
                 'label' => 'Map and GPS',
                 'icon' => 'map',
@@ -567,38 +576,7 @@ class SettingsRegistry
                 ],
             ],
 
-            'payments' => [
-                'payments.deposit_percent' => [
-                    'type' => 'number',
-                    'label' => 'Default deposit percentage',
-                    'config' => 'visitdasol.payment_policy.deposit_percent',
-                    'rules' => ['required', 'integer', 'min:0', 'max:100'],
-                    'help' => 'Used only where a resort has set no policy of its own. '
-                        .'A resort policy always wins, and a booking keeps the terms '
-                        .'it was made under.',
-                ],
-                'payments.deadline_hours' => [
-                    'type' => 'number',
-                    'label' => 'Default payment deadline, in hours',
-                    'config' => 'visitdasol.payment_policy.deadline_hours',
-                    'rules' => ['required', 'integer', 'min:1', 'max:720'],
-                    'help' => null,
-                ],
-                'payments.allow_manual' => [
-                    'type' => 'bool',
-                    'label' => 'Allow manual GCash transfers',
-                    'config' => null,
-                    'rules' => ['boolean'],
-                    'help' => 'Guests send a transfer and upload the receipt for review.',
-                ],
-                'payments.allow_on_site' => [
-                    'type' => 'bool',
-                    'label' => 'Allow paying on arrival',
-                    'config' => 'visitdasol.payment_policy.allow_on_site',
-                    'rules' => ['boolean'],
-                    'help' => null,
-                ],
-            ],
+            // The payments fields were here. See the note in groups().
 
             'map' => [
                 'map.zoom' => [
@@ -842,8 +820,6 @@ class SettingsRegistry
             'bookings.min_nights' => 1,
             'bookings.allow_day_tour' => true,
             'bookings.allow_overnight' => true,
-
-            'payments.allow_manual' => true,
 
             'map.allow_satellite' => true,
             'map.allow_hybrid' => true,

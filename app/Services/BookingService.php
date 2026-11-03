@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\BookingStatus;
 use App\Enums\BookingType;
+use App\Enums\PaymentPreference;
 use App\Exceptions\BookingException;
 use App\Models\Booking;
 use App\Models\Room;
@@ -281,6 +282,40 @@ class BookingService
                 $price->total,
                 $checkIn
             );
+
+            /*
+             * THE WAY OF PAYING HAS TO BE ONE THE RESORT ACCEPTS.
+             *
+             * Checked HERE because this is the one place that holds
+             * the real terms: the real total, the real arrival date,
+             * and the resort's policy as it stands at this instant.
+             * The form offers the same list and the request validates
+             * against it, but both of those are built before the guest
+             * presses send — and a form left open while the owner
+             * switched off cash on arrival would otherwise turn a
+             * required deposit into nothing to pay.
+             *
+             * Refused rather than silently corrected. Quietly moving a
+             * guest from "pay at the resort" to "pay a deposit now"
+             * changes what they agreed to.
+             */
+            $preference = $data['payment_preference'] ?? null;
+
+            if ($preference !== null) {
+                $choice = $preference instanceof PaymentPreference
+                    ? $preference
+                    : PaymentPreference::tryFrom((string) $preference);
+
+                $account = $room->resort->manualAccount()
+                    ->where('active', true)
+                    ->first();
+
+                if ($choice === null || ! $choice->isAvailable($account, $terms)) {
+                    throw BookingException::paymentMethodNotAllowed(
+                        $choice?->label() ?? 'that payment method'
+                    );
+                }
+            }
 
             $booking = new Booking([
                 'contact_name' => $data['contact_name'],

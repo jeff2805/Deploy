@@ -1523,7 +1523,7 @@ th[aria-sort] {
   display: inline-flex;
   align-items: center;
   gap: .5rem;
-  color: #fb2e2e;
+  color: #ffff;
   font-weight: 700;
   font-size: .8125rem;
   letter-spacing: .16em;
@@ -1572,10 +1572,9 @@ th[aria-sort] {
 .vd-hero__lead {
   max-width: 46ch;
   /* Was --vd-on-bay at .88 opacity, which the photograph washed out. */
-  color:#2600ff;
+  color:#fafafd;
   font-size: 1.125rem;
   text-shadow: 0 1px 10px rgba(8, 36, 44, .45);
-
 }
 
 /*

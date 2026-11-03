@@ -83,7 +83,46 @@ class SettingsTest extends TestCase
         ]);
 
         $this->actingAs($owner)->get(route('admin.settings.index'))->assertForbidden();
-        $this->actingAs($owner)->get(route('admin.settings.edit', 'payments'))->assertForbidden();
+
+        // Was 'payments' until that group was removed. The route is
+        // constrained to groups that exist, so a retired name would
+        // now answer 404 and the test would stop proving anything
+        // about authorisation.
+        $this->actingAs($owner)->get(route('admin.settings.edit', 'security'))->assertForbidden();
+    }
+
+    /**
+     * The payments group is gone and stays gone.
+     *
+     * It was removed on request. What this really guards is that
+     * removing the SCREEN did not remove the POLICY: the deposit
+     * percentage and the deadline are still in config and still
+     * reachable, because the booking and payment code reads them from
+     * there and always did.
+     */
+    public function test_the_payments_group_is_not_offered(): void
+    {
+        $this->assertArrayNotHasKey('payments', SettingsRegistry::groups());
+        $this->assertArrayNotHasKey('payments', SettingsRegistry::fields());
+
+        foreach (SettingsRegistry::keys() as $key) {
+            $this->assertStringStartsNotWith('payments.', $key);
+        }
+
+        $html = $this->actingAs($this->office())
+            ->get(route('admin.settings.index'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringNotContainsString('Default deposit percentage', $html);
+        $this->assertStringNotContainsString('/admin/settings/payments', $html);
+
+        // The route no longer matches, so the old link is a 404.
+        $this->actingAs($this->office())->get('/admin/settings/payments')->assertNotFound();
+
+        // And the policy the screen used to edit is untouched.
+        $this->assertNotNull(config('visitdasol.payment_policy.deposit_percent'));
+        $this->assertNotNull(config('visitdasol.payment_policy.deadline_hours'));
     }
 
     public function test_a_guest_is_sent_to_sign_in(): void

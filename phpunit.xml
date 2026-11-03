@@ -19,6 +19,17 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!--
+            Pinned, like the database below, so the suite does not depend
+            on where this machine happens to serve the site from.
+
+            APP_URL is http://localhost/visitdasol/public in development,
+            because that is genuinely where XAMPP serves it. route() builds
+            on that, so without this override every $this->get(route(...))
+            would ask the test kernel for /visitdasol/public/resorts/... —
+            a path no route matches — and the whole suite would 404.
+        -->
+        <env name="APP_URL" value="http://localhost"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>

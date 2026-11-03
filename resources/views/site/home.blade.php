@@ -12,7 +12,7 @@
             <h1 class="vd-wordmark" id="hero-title">{{ config('visitdasol.name') }}</h1>
             <p class="vd-hero__tagline">{{ config('visitdasol.tagline') }}</p>
             <p class="vd-hero__lead">
-                Find a resort on Dasol Bay, see where it is on the map, and request a room online.
+                Find a resort on Dasol Pangasinan, see where it is on the map, and request a room online.
                 Every listing is reviewed by the {{ config('visitdasol.contact.office') }}.
             </p>
 
